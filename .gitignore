@@ -11,3 +11,6 @@ __pycache__/
 
 # Ignore repo specific files
 openapi/generator.jar
+
+# Ignore distribution packages
+dist

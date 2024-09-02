@@ -1,6 +1,9 @@
-name: 'Publish package on TestPyPI'
+name: 'Publish package on PyPI'
 on:
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   publish:
@@ -13,7 +16,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v3
       with:
-        python-version: '3.8'
+        python-version: '3.11'
     - name: Install poetry
       uses: abatilo/actions-poetry@v2
     - name: Install the project dependencies
@@ -22,5 +25,16 @@ jobs:
       run: poetry build
     - name: Publish package
       uses: pypa/gh-action-pypi-publish@v1.10.0
+    - name: Get current version
+      id: version
+      run: echo "version=$(python .github/get-version.py)" >> "$GITHUB_OUTPUT"
+    - name: Create tag
+      uses: actions/github-script@v6
       with:
-        repository-url: https://test.pypi.org/legacy/
+        script: |
+          github.rest.git.createRef({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            ref: 'refs/tags/${{ steps.version.outputs.version }}',
+            sha: context.sha
+          })
