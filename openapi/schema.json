@@ -1,0 +1,4305 @@
+﻿{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "BugProve Public API",
+    "termsOfService": "https://bugprove.com/legal/terms-of-service",
+    "contact": {
+      "name": "BugProve Inc.",
+      "url": "https://bugprove.com/contact-us/"
+    },
+    "version": "20240716"
+  },
+  "servers": [
+    {
+      "url": "https://{workspace}.{environment}.bugprove.com/api/public/v1",
+      "variables": {
+        "workspace": {
+          "default": "public",
+          "description": "Workspace name"
+        },
+        "environment": {
+          "default": "eu",
+          "description": "Environment name",
+          "enum": [
+            "eu",
+            "us"
+          ]
+        }
+      }
+    },
+    {
+      "url": "https://{hostname}/api/public/v1",
+      "variables": {
+        "hostname": {
+          "default": "workspace.bugprove.local",
+          "description": "Domain name for the self-hosted instance"
+        }
+      }
+    }
+  ],
+  "paths": {
+    "/families": {
+      "get": {
+        "tags": [
+          "Families"
+        ],
+        "summary": "List families (products and projects)",
+        "operationId": "ListFamilies",
+        "parameters": [
+          {
+            "name": "Type",
+            "in": "query",
+            "description": "Filter items by type",
+            "schema": {
+              "$ref": "#/components/schemas/FamilyType"
+            }
+          },
+          {
+            "name": "From",
+            "in": "query",
+            "description": "Return only items created at or before this date - ignored if ContinuationToken is specified",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "ContinuationToken",
+            "in": "query",
+            "description": "A continuation token returned by a previous response to fetch the next set of results",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Limit",
+            "in": "query",
+            "description": "Maximum number of results to return",
+            "schema": {
+              "maximum": 500,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "example": 10
+            },
+            "example": 10
+          },
+          {
+            "name": "Keywords",
+            "in": "query",
+            "description": "Filter items by name (matching is case-insensitive, whitespace normalized)",
+            "schema": {
+              "maxLength": 140,
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListFamiliesResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "AccessDenied": {
+                    "value": {
+                      "code": "AccessDenied"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/families/{familyId}": {
+      "get": {
+        "tags": [
+          "Families"
+        ],
+        "summary": "Describe a family (a product or project)",
+        "operationId": "GetFamily",
+        "parameters": [
+          {
+            "name": "familyId",
+            "in": "path",
+            "description": "Family ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FamilyResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Family not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "EntityNotFound": {
+                    "value": {
+                      "code": "EntityNotFound"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "AccessDenied": {
+                    "value": {
+                      "code": "AccessDenied"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/scans/{scanId}/link": {
+      "post": {
+        "tags": [
+          "Links"
+        ],
+        "summary": "Generate a link for a scan",
+        "operationId": "CreateLink",
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "path",
+            "description": "Scan ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLinkRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateLinkResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Scan not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "EntityNotFound": {
+                    "value": {
+                      "code": "EntityNotFound"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "AccessDenied": {
+                    "value": {
+                      "code": "AccessDenied"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/scans/{scanId}/link/{sessionId}": {
+      "delete": {
+        "tags": [
+          "Links"
+        ],
+        "summary": "Revoke a link for a scan",
+        "operationId": "RevokeLink",
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "path",
+            "description": "Scan ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sessionId",
+            "in": "path",
+            "description": "Session ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Scan not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "EntityNotFound": {
+                    "value": {
+                      "code": "EntityNotFound"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "AccessDenied": {
+                    "value": {
+                      "code": "AccessDenied"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/scans/{scanId}/reports": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "List all reports for a scan",
+        "operationId": "ListReports",
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "path",
+            "description": "Scan ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ReportResponse"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "AccessDenied": {
+                    "value": {
+                      "code": "AccessDenied"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Generate a report for a scan",
+        "operationId": "CreateReport",
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "path",
+            "description": "Scan ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "FeatureNotAvailable": {
+                    "value": {
+                      "code": "FeatureNotAvailable"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "EntityNotFound": {
+                    "value": {
+                      "code": "EntityNotFound"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Report generation already in progress",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "ReportInInvalidState": {
+                    "value": {
+                      "code": "ReportInInvalidState"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/scans/{scanId}/reports/{revision}": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Generate a signed URL to download a report",
+        "operationId": "DownloadReport",
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "path",
+            "description": "Scan ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "revision",
+            "in": "path",
+            "description": "Report revision",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Report not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "EntityNotFound": {
+                    "value": {
+                      "code": "EntityNotFound"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Report status not valid",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "ReportInInvalidState": {
+                    "value": {
+                      "code": "ReportInInvalidState"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "AccessDenied": {
+                    "value": {
+                      "code": "AccessDenied"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/scans": {
+      "get": {
+        "tags": [
+          "Scans"
+        ],
+        "summary": "List scans",
+        "operationId": "ListScans",
+        "parameters": [
+          {
+            "name": "Type",
+            "in": "query",
+            "description": "Filter items by type",
+            "schema": {
+              "$ref": "#/components/schemas/UploadType"
+            }
+          },
+          {
+            "name": "FamilyId",
+            "in": "query",
+            "description": "Filter items by family",
+            "schema": {
+              "pattern": "^[A-Z0-9]{13}(_[A-Z0-9]{13}){0,2}$",
+              "type": "string"
+            }
+          },
+          {
+            "name": "SuccessfulOnly",
+            "in": "query",
+            "description": "Filter items by status",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "From",
+            "in": "query",
+            "description": "Return only items created at or before this date - ignored if ContinuationToken is specified",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "ContinuationToken",
+            "in": "query",
+            "description": "A continuation token returned by a previous response to fetch the next set of results",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Limit",
+            "in": "query",
+            "description": "Maximum number of results to return",
+            "schema": {
+              "maximum": 500,
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32",
+              "example": 10
+            },
+            "example": 10
+          },
+          {
+            "name": "Keywords",
+            "in": "query",
+            "description": "Filter items by name (matching is case-insensitive, whitespace normalized)",
+            "schema": {
+              "maxLength": 140,
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListScansResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "AccessDenied": {
+                    "value": {
+                      "code": "AccessDenied"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Upload"
+        ],
+        "summary": "Start a new scan by uploading a file directly",
+        "operationId": "StartScanWithDirectUpload",
+        "parameters": [
+          {
+            "name": "Name",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "maxLength": 140,
+              "minLength": 1,
+              "type": "string",
+              "example": "firmware.bin"
+            },
+            "example": "firmware.bin"
+          },
+          {
+            "name": "UploadType",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UploadType"
+            }
+          },
+          {
+            "name": "FamilyId",
+            "in": "query",
+            "schema": {
+              "pattern": "^[A-Z0-9]{13}(_[A-Z0-9]{13}){0,2}$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Uploaded file",
+          "content": {
+            "application/octet-stream": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScanResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "TryAgainLater": {
+                    "value": {
+                      "code": "TryAgainLater"
+                    }
+                  },
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "WorkspaceIsBeingDeleted": {
+                    "value": {
+                      "code": "WorkspaceIsBeingDeleted"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Family not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "EntityNotFound": {
+                    "value": {
+                      "code": "EntityNotFound"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/scans/{scanId}": {
+      "get": {
+        "tags": [
+          "Scans"
+        ],
+        "summary": "Describe a scan",
+        "operationId": "GetScan",
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "path",
+            "description": "Scan ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScanResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Scan not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "EntityNotFound": {
+                    "value": {
+                      "code": "EntityNotFound"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "AccessDenied": {
+                    "value": {
+                      "code": "AccessDenied"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Upload"
+        ],
+        "summary": "Start a new scan for a file uploaded via an indirect upload",
+        "operationId": "StartScanWithIndirectUpload",
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "path",
+            "description": "Scan ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartScanWithIndirectUploadRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScanResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "WorkspaceIsBeingDeleted": {
+                    "value": {
+                      "code": "WorkspaceIsBeingDeleted"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/scans/{scanId}/sbom": {
+      "get": {
+        "tags": [
+          "Scans"
+        ],
+        "summary": "Build an SBOM (Software Bill of Materials) document based on the results of a scan",
+        "operationId": "GenerateSoftwareBillOfMaterials",
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "path",
+            "description": "Scan ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "FileFormat",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SbomReportFileFormat"
+            }
+          },
+          {
+            "name": "ReportType",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/SbomReportType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary",
+                  "example": "// An SBOM document in the specified format"
+                },
+                "examples": {
+                  "CycloneDX": {
+                    "externalValue": "https://github.com/CycloneDX/bom-examples"
+                  },
+                  "SPDX": {
+                    "externalValue": "https://github.com/spdx/spdx-examples"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Scan not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "EntityNotFound": {
+                    "value": {
+                      "code": "EntityNotFound"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Scan is not valid for SBOM generation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "BadScanStatus": {
+                    "value": {
+                      "code": "BadScanStatus"
+                    }
+                  },
+                  "InvalidUploadType": {
+                    "value": {
+                      "code": "InvalidUploadType"
+                    }
+                  },
+                  "InvalidMonitoringState": {
+                    "value": {
+                      "code": "InvalidMonitoringState"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "AccessDenied": {
+                    "value": {
+                      "code": "AccessDenied"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/scans/{scanId}/findings": {
+      "get": {
+        "tags": [
+          "Scans"
+        ],
+        "summary": "List findings for a scan",
+        "operationId": "ListFindings",
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "path",
+            "description": "Scan ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FindingResponse"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Scan not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "EntityNotFound": {
+                    "value": {
+                      "code": "EntityNotFound"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "AccessDenied": {
+                    "value": {
+                      "code": "AccessDenied"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/scans/{scanId}/download/original": {
+      "get": {
+        "tags": [
+          "Scans"
+        ],
+        "summary": "Generate a signed URL to download the original input file",
+        "operationId": "DownloadOriginalFile",
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Scan not found, or asset is missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "EntityNotFound": {
+                    "value": {
+                      "code": "EntityNotFound"
+                    }
+                  },
+                  "AssetNotFound": {
+                    "value": {
+                      "code": "AssetNotFound"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "AccessDenied": {
+                    "value": {
+                      "code": "AccessDenied"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/scans/{scanId}/download/extracted": {
+      "get": {
+        "tags": [
+          "Scans"
+        ],
+        "summary": "Generate a signed URL to download all extracted files in an archive",
+        "operationId": "DownloadExtractedArchive",
+        "parameters": [
+          {
+            "name": "scanId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Scan not found, or asset is missing",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "EntityNotFound": {
+                    "value": {
+                      "code": "EntityNotFound"
+                    }
+                  },
+                  "AssetNotFound": {
+                    "value": {
+                      "code": "AssetNotFound"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Not a firmware scan, or scan is still pending",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "BadScanStatus": {
+                    "value": {
+                      "code": "BadScanStatus"
+                    }
+                  },
+                  "InvalidUploadType": {
+                    "value": {
+                      "code": "InvalidUploadType"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "AccessDenied": {
+                    "value": {
+                      "code": "AccessDenied"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/me": {
+      "get": {
+        "tags": [
+          "Token"
+        ],
+        "summary": "Describe the current token",
+        "operationId": "GetTokenInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenInfoResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "AccessDenied": {
+                    "value": {
+                      "code": "AccessDenied"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Token"
+        ],
+        "summary": "Revoke the current token",
+        "operationId": "RevokeApiKey",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Token is not an API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "InvalidTokenType": {
+                    "value": {
+                      "code": "InvalidTokenType"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/scans/uploads": {
+      "post": {
+        "tags": [
+          "Upload"
+        ],
+        "summary": "Request a signed URL for a new indirect upload",
+        "operationId": "BeginIndirectUpload",
+        "requestBody": {
+          "description": "Request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BeginIndirectUploadRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BeginIndirectUploadResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "TooManyPendingUploads": {
+                    "value": {
+                      "code": "TooManyPendingUploads"
+                    }
+                  },
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Upload"
+        ],
+        "summary": "Cancel a pending indirect upload without starting a scan",
+        "operationId": "CancelIndirectUpload",
+        "requestBody": {
+          "description": "Request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelIndirectUploadRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "AccessDenied": {
+                    "value": {
+                      "code": "AccessDenied"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/scans/uploads/multipart": {
+      "post": {
+        "tags": [
+          "Upload"
+        ],
+        "summary": "Request signed URLs for a new multipart upload",
+        "operationId": "BeginMultipartIndirectUpload",
+        "requestBody": {
+          "description": "Request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BeginMultipartIndirectUploadRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BeginMultipartIndirectUploadResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "TooManyPendingUploads": {
+                    "value": {
+                      "code": "TooManyPendingUploads"
+                    }
+                  },
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/scans/uploads/continue": {
+      "post": {
+        "tags": [
+          "Upload"
+        ],
+        "summary": "Refresh the signed URLs for a pending multipart upload",
+        "operationId": "ContinueMultipartIndirectUpload",
+        "requestBody": {
+          "description": "Request",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContinueMultipartIndirectUploadRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContinueMultipartIndirectUploadResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "UnknownError": {
+                    "value": {
+                      "code": "UnknownError"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "MaintenanceMode": {
+                    "value": {
+                      "code": "MaintenanceMode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "LimitExceeded": {
+                    "value": {
+                      "code": "LimitExceeded"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "AssetNotFound": {
+                    "value": {
+                      "code": "AssetNotFound"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "headers": {
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "examples": {
+                  "Unauthorized": {
+                    "value": {
+                      "code": "Unauthorized"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": [ ]
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ApiErrorCode": {
+        "enum": [
+          "UnknownError",
+          "Unauthorized",
+          "AccessDenied",
+          "FeatureNotAvailable",
+          "TooManyPendingUploads",
+          "EntityNotFound",
+          "BadScanStatus",
+          "ValidationError",
+          "LimitExceeded",
+          "ReportInInvalidState",
+          "InvalidUploadType",
+          "MaintenanceMode",
+          "InvalidMonitoringState",
+          "AssetNotFound",
+          "InvalidTokenType",
+          "WorkspaceIsBeingDeleted",
+          "TryAgainLater"
+        ],
+        "type": "string"
+      },
+      "BeginIndirectUploadRequest": {
+        "required": [
+          "checksum",
+          "size"
+        ],
+        "type": "object",
+        "properties": {
+          "size": {
+            "maximum": 5368709120,
+            "minimum": 256,
+            "type": "integer",
+            "description": "Size of the file in bytes",
+            "format": "int64",
+            "example": 134217728
+          },
+          "checksum": {
+            "pattern": "^[a-zA-Z0-9+/]{43}={1}$",
+            "type": "string",
+            "description": "Base64-encoded SHA-256 hash of the file",
+            "example": "UNhY4JhezH9gQYqvDMWrWH9CwlcKiECVqejMrND2VFw="
+          }
+        },
+        "additionalProperties": false
+      },
+      "BeginIndirectUploadResponse": {
+        "required": [
+          "expiry",
+          "scanId",
+          "signedUrl",
+          "uploadId"
+        ],
+        "type": "object",
+        "properties": {
+          "scanId": {
+            "type": "string",
+            "example": "VTPVXVYYNPZEY"
+          },
+          "uploadId": {
+            "type": "string",
+            "example": "0JHYrOeDBIM6.miKCOV6lobAH..."
+          },
+          "expiry": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "signedUrl": {
+            "type": "string",
+            "description": "A signed URL the actual file needs to be uploaded to with a PUT request. The request \r\nmust include the SHA-256 hash of the file (as supplied in the Checksum property of \r\nthe request) in the x-amz-checksum-sha256 header. Note the ETag header in the response,\r\nyou will need it when starting the scan.",
+            "example": "https://bpeu-analysis.s3-accelerate.dualstack.amazonaws.com/uploads/ZVPZNKPAZTZEZ/VTPVXVYYNPZEY?uploadId=0JHYrOeDBIM6..."
+          }
+        },
+        "additionalProperties": false
+      },
+      "BeginMultipartIndirectUploadRequest": {
+        "required": [
+          "size"
+        ],
+        "type": "object",
+        "properties": {
+          "size": {
+            "maximum": 5497558138880,
+            "minimum": 1073741824,
+            "type": "integer",
+            "description": "Size of the file in bytes",
+            "format": "int64",
+            "example": 134217728
+          }
+        },
+        "additionalProperties": false
+      },
+      "BeginMultipartIndirectUploadResponse": {
+        "required": [
+          "expiry",
+          "partSize",
+          "scanId",
+          "signedUrls",
+          "uploadId"
+        ],
+        "type": "object",
+        "properties": {
+          "scanId": {
+            "type": "string",
+            "example": "VTPVXVYYNPZEY"
+          },
+          "uploadId": {
+            "type": "string",
+            "example": "0JHYrOeDBIM6.miKCOV6lobAH..."
+          },
+          "expiry": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "partSize": {
+            "type": "integer",
+            "description": "Each part in a multipart upload is the same size, except the last \r\npart if the file size is not divisible by the part size (in which case\r\nthe last part is the size of the remaining data).",
+            "format": "int64"
+          },
+          "signedUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The signed URLs the parts of the file need to be uploaded to with a PUT request. \r\nStore the ETag headers from the responses, you will need them when starting the scan."
+          }
+        },
+        "additionalProperties": false
+      },
+      "CancelIndirectUploadRequest": {
+        "required": [
+          "scanId",
+          "uploadId"
+        ],
+        "type": "object",
+        "properties": {
+          "scanId": {
+            "pattern": "^[A-Z0-9]{13}(_[A-Z0-9]{13}){0,2}$",
+            "type": "string",
+            "example": "VTPVXVYYNPZEY"
+          },
+          "uploadId": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string",
+            "example": "0JHYrOeDBIM6.miKCOV6lobAH..."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ComponentCategory": {
+        "enum": [
+          "Application",
+          "Kernel"
+        ],
+        "type": "string",
+        "example": "Kernel"
+      },
+      "ContinueMultipartIndirectUploadRequest": {
+        "required": [
+          "scanId",
+          "size",
+          "uploadId"
+        ],
+        "type": "object",
+        "properties": {
+          "size": {
+            "maximum": 5497558138880,
+            "minimum": 1073741824,
+            "type": "integer",
+            "description": "Size of the file in bytes",
+            "format": "int64",
+            "example": 134217728
+          },
+          "scanId": {
+            "pattern": "^[A-Z0-9]{13}(_[A-Z0-9]{13}){0,2}$",
+            "type": "string",
+            "example": "VTPVXVYYNPZEY"
+          },
+          "uploadId": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string",
+            "example": "0JHYrOeDBIM6.miKCOV6lobAH..."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ContinueMultipartIndirectUploadResponse": {
+        "required": [
+          "expiry",
+          "partSize",
+          "signedUrls"
+        ],
+        "type": "object",
+        "properties": {
+          "partSize": {
+            "type": "integer",
+            "description": "Each part in a multipart upload is the same size, except the last \r\npart if the file size is not divisible by the part size (in which case\r\nthe last part is the size of the remaining data).",
+            "format": "int64"
+          },
+          "signedUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The signed URLs the parts of the file need to be uploaded to with a PUT request. \r\nStore the ETag headers from the responses, you will need them when starting the scan."
+          },
+          "expiry": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateLinkRequest": {
+        "required": [
+          "role",
+          "validitySeconds"
+        ],
+        "type": "object",
+        "properties": {
+          "validitySeconds": {
+            "maximum": 3600,
+            "minimum": 900,
+            "type": "integer",
+            "format": "int32"
+          },
+          "role": {
+            "$ref": "#/components/schemas/LinkRole"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateLinkResponse": {
+        "required": [
+          "expires",
+          "sessionId",
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "expires": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "Cvss": {
+        "required": [
+          "baseScore",
+          "vector",
+          "version"
+        ],
+        "type": "object",
+        "properties": {
+          "version": {
+            "$ref": "#/components/schemas/CvssVersion"
+          },
+          "baseScore": {
+            "type": "number",
+            "format": "double",
+            "example": 5.5
+          },
+          "vector": {
+            "$ref": "#/components/schemas/CvssVector"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CvssVector": {
+        "enum": [
+          "Unknown",
+          "Physical",
+          "Local",
+          "AdjacentNetwork",
+          "Network"
+        ],
+        "type": "string",
+        "example": "Local"
+      },
+      "CvssVersion": {
+        "enum": [
+          "Unknown",
+          "V2",
+          "V3",
+          "V31",
+          "V4"
+        ],
+        "type": "string",
+        "example": "V31"
+      },
+      "DefaultScanConfiguration": {
+        "type": "object",
+        "properties": {
+          "isManual": {
+            "type": "boolean",
+            "description": "If true, no automatic PRIS scans are started, except for the binaries\r\nexplicitly specified in BinariesToScan. If false or left empty, automatic\r\nPRIS scans are started for the most likely to be vulnerable binaries.",
+            "nullable": true
+          },
+          "binariesToScan": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of binaries to start PRIS scans for. Specify file names. If\r\nspecified, IsManual must be true.",
+            "nullable": true,
+            "example": [
+              "importantd"
+            ]
+          },
+          "isDebugBuild": {
+            "type": "boolean",
+            "description": "Whether the uploaded artifact is a debug version of the\r\nsoftware. Suppresses findings related to debug symbols.",
+            "nullable": true
+          },
+          "knownVulnerabilityFilter": {
+            "$ref": "#/components/schemas/KnownVulnerabilityFilter"
+          },
+          "monitoringPolicy": {
+            "$ref": "#/components/schemas/MonitoringPolicy"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DownloadResponse": {
+        "required": [
+          "expiry",
+          "url"
+        ],
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "example": "https://bpeu-analysis.s3-accelerate.dualstack.amazonaws.com/uploads/ZVPZNKPAZTZEZ/VTPVXVYYNPZEY?X-Amz-Expires=300..."
+          },
+          "expiry": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ErrorResponse": {
+        "required": [
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/ApiErrorCode"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "FamilyResponse": {
+        "required": [
+          "created",
+          "id",
+          "name",
+          "type",
+          "updated"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "ZVPW1QQYXQ0DW"
+          },
+          "name": {
+            "type": "string",
+            "example": "Vandelay Home Router Pro"
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "type": {
+            "$ref": "#/components/schemas/FamilyType"
+          },
+          "defaultScanConfiguration": {
+            "$ref": "#/components/schemas/DefaultScanConfiguration"
+          },
+          "findings": {
+            "$ref": "#/components/schemas/FindingSummary"
+          },
+          "latestScanId": {
+            "type": "string",
+            "description": "For Product families, the ID of the latest scan.\r\nFor Project families, it is always null.",
+            "nullable": true,
+            "example": "VTPVXVYYNPZEY"
+          },
+          "latestScanCreated": {
+            "type": "string",
+            "description": "For Product families, the creation date of the latest scan.\r\nFor Project families, it is always null.",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "FamilyType": {
+        "enum": [
+          "Product",
+          "Project"
+        ],
+        "type": "string"
+      },
+      "FindingResponse": {
+        "required": [
+          "created",
+          "digest",
+          "knownExploited",
+          "parameters",
+          "state",
+          "type",
+          "updated"
+        ],
+        "type": "object",
+        "properties": {
+          "digest": {
+            "type": "string",
+            "description": "Deduplication digest used to uniquely identify this finding",
+            "example": "8bf18252cb6dadd5f42fca108271e688696209cdb6fae22e32318b204e6eb37d"
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "type": {
+            "$ref": "#/components/schemas/FindingType"
+          },
+          "state": {
+            "$ref": "#/components/schemas/FindingState"
+          },
+          "cvss": {
+            "$ref": "#/components/schemas/Cvss"
+          },
+          "cwe": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true,
+            "example": 476
+          },
+          "knownExploited": {
+            "type": "boolean"
+          },
+          "parameters": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "nullable": true
+            },
+            "description": "Additional information, dependent on the finding's type",
+            "example": {
+              "versionCount": "1",
+              "version": "2.6.22",
+              "dependency": "linux_kernel",
+              "id": "CVE-2014-4652"
+            }
+          },
+          "generatedTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "shortDescription": {
+            "type": "string",
+            "nullable": true,
+            "example": "CVE-2014-4652 in linux_kernel 2.6.22"
+          },
+          "longDescription": {
+            "type": "string",
+            "nullable": true,
+            "example": "Known vulnerability CVE-2014-4652 in linux_kernel 2.6.22"
+          }
+        },
+        "additionalProperties": false
+      },
+      "FindingState": {
+        "enum": [
+          "Unconfirmed",
+          "Found",
+          "Ignored",
+          "Accepted",
+          "Rejected",
+          "Removed"
+        ],
+        "type": "string",
+        "example": "Found"
+      },
+      "FindingSummary": {
+        "required": [
+          "findingCounts",
+          "unconfirmedFindingCounts"
+        ],
+        "type": "object",
+        "properties": {
+          "findingCounts": {
+            "type": "object",
+            "properties": {
+              "Unknown": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "None": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "Low": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "Medium": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "High": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "Critical": {
+                "type": "integer",
+                "format": "int32"
+              }
+            },
+            "additionalProperties": false,
+            "description": "Count of Accepted and Found findings by severity"
+          },
+          "unconfirmedFindingCounts": {
+            "type": "object",
+            "properties": {
+              "Unknown": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "None": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "Low": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "Medium": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "High": {
+                "type": "integer",
+                "format": "int32"
+              },
+              "Critical": {
+                "type": "integer",
+                "format": "int32"
+              }
+            },
+            "additionalProperties": false,
+            "description": "Count of Unconfirmed findings by Severity"
+          }
+        },
+        "additionalProperties": false
+      },
+      "FindingType": {
+        "enum": [
+          "Unknown",
+          "KnownVulnerability",
+          "PrivateKeyFound",
+          "PotentialCommandInjection",
+          "PotentialBufferOverflow",
+          "PotentialMemoryCorruption",
+          "ScriptAnalysis"
+        ],
+        "type": "string",
+        "example": "KnownVulnerability"
+      },
+      "KnownVulnerabilityFilter": {
+        "type": "object",
+        "properties": {
+          "ignoredCvssVectors": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CvssVector"
+            },
+            "description": "Findings for known vulnerabilities that have CVSS vectors contained in this set will start in Ignored state.",
+            "nullable": true
+          },
+          "minimumCvssScore": {
+            "maximum": 11,
+            "minimum": 0,
+            "type": "number",
+            "description": "If set, findings for known vulnerabilities that have a lower CVSS score\r\nthan the one specified will start in Ignored state.",
+            "format": "double",
+            "nullable": true,
+            "example": 4
+          },
+          "ignoredDependencyCategories": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ComponentCategory"
+            },
+            "description": "Findings for known vulnerabilities for which the dependency's category\r\nis contained in this set will start in Ignored state.",
+            "nullable": true
+          },
+          "ignoreNotKnownExploited": {
+            "type": "boolean",
+            "description": "If true, findings for known vulnerabilities that are NOT marked as a known exploited vulnerability\r\nwill start in Ignored state.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "LinkRole": {
+        "enum": [
+          "LinkReader",
+          "LinkWriter"
+        ],
+        "type": "string"
+      },
+      "ListFamiliesResponse": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FamilyResponse"
+            }
+          },
+          "continuationToken": {
+            "type": "string",
+            "nullable": true,
+            "example": "QTM3NB4904000J1XJATSPGEF4T"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ListScansResponse": {
+        "required": [
+          "items"
+        ],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScanResponse"
+            }
+          },
+          "continuationToken": {
+            "type": "string",
+            "nullable": true,
+            "example": "QTM3NB4904000J1XJATSPGEF4T"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MonitoringPolicy": {
+        "enum": [
+          "Disabled",
+          "Enabled",
+          "Latest"
+        ],
+        "type": "string"
+      },
+      "MonitoringState": {
+        "enum": [
+          "NotSupported",
+          "Disabled",
+          "Enabling",
+          "Enabled",
+          "Disabling",
+          "Rescanning"
+        ],
+        "type": "string"
+      },
+      "ReportGenerationStatus": {
+        "enum": [
+          "Pending",
+          "Available",
+          "Failed",
+          "Deleted"
+        ],
+        "type": "string"
+      },
+      "ReportResponse": {
+        "required": [
+          "revision",
+          "status",
+          "timestamp"
+        ],
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ReportGenerationStatus"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SbomReportFileFormat": {
+        "enum": [
+          "Json",
+          "Xml",
+          "Csv"
+        ],
+        "type": "string"
+      },
+      "SbomReportType": {
+        "enum": [
+          "CycloneDx",
+          "Spdx"
+        ],
+        "type": "string"
+      },
+      "ScanConfiguration": {
+        "type": "object",
+        "properties": {
+          "isManual": {
+            "type": "boolean",
+            "description": "If true, no automatic PRIS scans are started, except for the binaries\r\nexplicitly specified in BinariesToScan. If false or left empty, automatic\r\nPRIS scans are started for the most likely to be vulnerable binaries.",
+            "nullable": true
+          },
+          "binariesToScan": {
+            "uniqueItems": true,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of binaries to start PRIS scans for. Specify file names. If\r\nspecified, IsManual must be true.",
+            "nullable": true,
+            "example": [
+              "importantd"
+            ]
+          },
+          "isDebugBuild": {
+            "type": "boolean",
+            "description": "Whether the uploaded artifact is a debug version of the\r\nsoftware. Suppresses findings related to debug symbols.",
+            "nullable": true
+          },
+          "knownVulnerabilityFilter": {
+            "$ref": "#/components/schemas/KnownVulnerabilityFilter"
+          },
+          "monitoringEnabled": {
+            "type": "boolean",
+            "description": "Whether monitoring will be enabled after the scan has \r\ncompleted successfully. If specified, any monitoring \r\npolicy specified on the family level will be ignored.",
+            "nullable": true
+          },
+          "canBecomeLatestScan": {
+            "type": "boolean",
+            "description": "Whether the scan can become the latest scan in a \r\nProduct family after it has completed successfully",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ScanResponse": {
+        "required": [
+          "created",
+          "id",
+          "monitoringState",
+          "name",
+          "status",
+          "updated",
+          "uploadChecksum",
+          "uploadType"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "example": "VTPVXVYYNPZEY"
+          },
+          "name": {
+            "type": "string",
+            "example": "firmware.bin"
+          },
+          "created": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ScanStatus"
+          },
+          "started": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "finished": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "uploadType": {
+            "$ref": "#/components/schemas/UploadType"
+          },
+          "uploadChecksum": {
+            "type": "string",
+            "description": "Base64-encoded SHA-256 hash of the file",
+            "example": "UNhY4JhezH9gQYqvDMWrWH9CwlcKiECVqejMrND2VFw="
+          },
+          "familyId": {
+            "type": "string",
+            "nullable": true,
+            "example": "ZVPW1QQYXQ0DW"
+          },
+          "configuration": {
+            "$ref": "#/components/schemas/ScanConfiguration"
+          },
+          "findings": {
+            "$ref": "#/components/schemas/FindingSummary"
+          },
+          "monitoringState": {
+            "$ref": "#/components/schemas/MonitoringState"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ScanStatus": {
+        "enum": [
+          "Uploaded",
+          "Pending",
+          "Queued",
+          "Analyzing",
+          "Cancelling",
+          "AnalyzingSubscans",
+          "Successful",
+          "Failed",
+          "Incomplete"
+        ],
+        "type": "string"
+      },
+      "StartScanWithIndirectUploadRequest": {
+        "required": [
+          "name",
+          "upload",
+          "uploadType"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 140,
+            "minLength": 1,
+            "type": "string",
+            "example": "firmware.bin"
+          },
+          "uploadType": {
+            "$ref": "#/components/schemas/UploadType"
+          },
+          "familyId": {
+            "pattern": "^[A-Z0-9]{13}(_[A-Z0-9]{13}){0,2}$",
+            "type": "string",
+            "nullable": true
+          },
+          "upload": {
+            "$ref": "#/components/schemas/Upload"
+          },
+          "configuration": {
+            "$ref": "#/components/schemas/ScanConfiguration"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TokenInfoResponse": {
+        "required": [
+          "expires",
+          "id",
+          "type"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/TokenType"
+          },
+          "id": {
+            "type": "string",
+            "example": "ZVPZNKPAZTZEZZQDZB7CNZNYXW"
+          },
+          "expires": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true,
+            "example": "My Little Token"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TokenType": {
+        "enum": [
+          "ApiKey",
+          "UserSessionToken"
+        ],
+        "type": "string"
+      },
+      "Upload": {
+        "required": [
+          "checksum",
+          "eTags",
+          "id"
+        ],
+        "type": "object",
+        "properties": {
+          "id": {
+            "maxLength": 512,
+            "minLength": 1,
+            "type": "string",
+            "example": "0JHYrOeDBIM6.miKCOV6lobAH..."
+          },
+          "checksum": {
+            "pattern": "^[a-zA-Z0-9+/]{43}={1}$",
+            "type": "string",
+            "description": "Base64-encoded SHA-256 hash of the file",
+            "example": "UNhY4JhezH9gQYqvDMWrWH9CwlcKiECVqejMrND2VFw="
+          },
+          "eTags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "ETags received after the uploads via the signed URL"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UploadType": {
+        "enum": [
+          "Firmware",
+          "Binary"
+        ],
+        "type": "string"
+      },
+      "ValidationErrorResponse": {
+        "required": [
+          "code"
+        ],
+        "type": "object",
+        "properties": {
+          "code": {
+            "$ref": "#/components/schemas/ApiErrorCode"
+          },
+          "message": {
+            "type": "string",
+            "nullable": true
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": { },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "example": {
+          "code": "ValidationError",
+          "errors": {
+            "PropertyName": "Error message"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "scheme": "Bearer"
+      }
+    }
+  }
+}

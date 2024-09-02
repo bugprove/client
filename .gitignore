@@ -1,0 +1,13 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+.venv/
+
+# Ruff cache
+.ruff_cache/
+
+# Ignore repo specific files
+openapi/generator.jar

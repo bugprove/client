@@ -1,0 +1,66 @@
+[tool.poetry]
+name = "bugprove"
+version = "1.0.0"
+description = "CLI and client library for BugProve"
+readme = "README.md"
+license = "MIT"
+homepage = "https://bugprove.com/"
+authors = ["BugProve, Inc. <support@bugprove.com>"]
+packages = [{ include = "bugprove", from = "src" }]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Environment :: Console",
+  "Topic :: Security",
+]
+
+[tool.poetry.scripts]
+bugprove = "bugprove.cli:main"
+
+[tool.poetry.dependencies]
+python = ">=3.8,<3.13"
+aenum = "^3.1.15"
+aiohttp = "^3.10.5"
+aiohttp-retry = "^2.8.3"
+pydantic = "^2.8.2"
+python-dateutil = "^2.9.0.post0"
+urllib3 = ">=1.25.3,<2.1.0"
+tqdm = "^4.66.5"
+click = "^8.1.7"
+pyjwt = "^2.9.0"
+typing-extensions = "^4.12.2"
+
+[tool.poetry.group.dev]
+optional = true
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.5.1"
+
+[tool.ruff]
+target-version = "py38"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "B", "I"]
+exclude = [
+  "src/bugprove/internal/**/*.py"
+]
+
+[tool.pyright]
+include = [
+  "src"
+]
+exclude = [
+  "src/bugprove/internal"
+]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -1,0 +1,21 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug upload",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "bugprove",
+            "justMyCode": false,
+            "args": ["scan", "upload", "<FIRMWARE-PATH>"]
+        },
+        {
+            "name": "Debug get status",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "bugprove",
+            "justMyCode": false,
+            "args": ["scan", "info", "<SCAN-ID>"]
+        }
+    ]
+}
